@@ -1,0 +1,37 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    name: Build and Release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: '^1.17'
+
+      - name: Build binaries
+        run: |
+          GOOS=linux GOARCH=amd64 go build -o ./bin/cloud-cli-linux-amd64 .
+          GOOS=windows GOARCH=amd64 go build -o ./bin/cloud-cli-windows-amd64.exe .
+          GOOS=darwin GOARCH=amd64 go build -o ./bin/cloud-cli-darwin-amd64 .
+        shell: bash
+
+      - name: Upload binaries to GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            bin/cloud-cli-linux-amd64
+            bin/cloud-cli-windows-amd64.exe
+            bin/cloud-cli-darwin-amd64
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
